@@ -10,14 +10,13 @@ A professional-grade Python toolkit for processing, analyzing, and visualizing c
 
 ## Key Features
 
-*   **Gap-Aware Visualization**: Intelligently renders data gaps as whitespace, ensuring absolute time-accuracy without the artifacts introduced by zero-padding.
 *   **Dual-Band Spectral Analysis**: Simultaneous generation of high-frequency (Hz) and long-period (seconds) spectrograms in a unified dashboard.
 *   **Scientific Processing Pipeline**: 
     *   Automated instrument response removal via StationXML/FDSN inventories.
     *   Dynamic station aliasing (remapping hardware serials to canonical SEED codes).
     *   Zero-phase display filtering to preserve waveform timing.
 *   **Automated Feature Extraction**: Implementation of the **Harmonic Product Spectrum (HPS)** algorithm for fundamental frequency detection in complex seismic signals.
-*   **Production-Ready Codebase**: Fully modular architecture with type hints, NumPy-style docstrings, and automated unit tests.
+*   **Gap-Aware Visualization**: Intelligently renders data gaps as whitespace, ensuring absolute time-accuracy without the artifacts introduced by zero-padding.
 
 ---
 
