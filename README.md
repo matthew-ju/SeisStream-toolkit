@@ -8,7 +8,7 @@ A professional-grade Python toolkit for processing, analyzing, and visualizing c
 
 ![Seismic Spectrogram Example](doc/DARS1.BHZ_2015_02_08_00.png)
 
-## 🚀 Key Features
+## Key Features
 
 *   **Gap-Aware Visualization**: Intelligently renders data gaps as whitespace, ensuring absolute time-accuracy without the artifacts introduced by zero-padding.
 *   **Dual-Band Spectral Analysis**: Simultaneous generation of high-frequency (Hz) and long-period (seconds) spectrograms in a unified dashboard.
@@ -21,7 +21,7 @@ A professional-grade Python toolkit for processing, analyzing, and visualizing c
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 ### 1. Installation
 
@@ -47,7 +47,7 @@ python src/run_spectrogram.py doc/testdata.mseed --kind harmonic --fmin 0.4 --fm
 
 ---
 
-## 🛠 Project Architecture
+## Project Architecture
 
 The codebase follows a modular design pattern to separate concerns and improve maintainability:
 
@@ -71,7 +71,7 @@ SeisStream-toolkit/
 
 ---
 
-## 🔬 Technical Implementation
+## Technical Implementation
 
 ### Instrument Response Handling
 The toolkit implements a robust deconvolution pipeline. If a StationXML file is provided in `config.py`, the system automatically performs:
@@ -85,7 +85,7 @@ The `analysis` module utilizes a Gaussian-fitted Harmonic Product Spectrum. This
 
 ---
 
-## ✅ Quality Assurance
+## Quality Assurance
 
 This project includes a suite of tests to ensure processing consistency.
 
@@ -96,7 +96,7 @@ python -m pytest tests/ -v
 
 ---
 
-## 📄 License
+## License
 Distributed under the **GNU Lesser General Public License v3**. See `LICENSE` for more information.
 
 ---
