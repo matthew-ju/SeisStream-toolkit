@@ -9,11 +9,11 @@ The figure layout (left panel = time-series, right panel = mean PSD):
   ┌─────────────────────────────────┐  ┌──┐
   │  ax_waveform   (seismogram)     │  │  │  ax_colorbar
   ├─────────────────────────────────┤  └──┘
-  │  ax_highfreq   (f > 1 Hz)  [*] │  ┌──┐
+  │  ax_highfreq   (f > 1 Hz)  [*] │   ┌──┐
   ├─────────────────────────────────┤  │  │  ax_psd_high [*]
   │  ax_lowfreq    (period 1–1000s) │  ├──┤
   └─────────────────────────────────┘  │  │  ax_psd_low
-                                        └──┘
+                                       └──┘
   [*] only drawn when ``plot_highfreq=True``
 
 Public functions

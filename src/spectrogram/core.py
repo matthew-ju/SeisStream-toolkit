@@ -115,6 +115,26 @@ def calc_spec(
     logger.info("Processing %s  (%d trace(s))", tr0.id, len(st))
 
     # ------------------------------------------------------------------
+    # Optional time-window trimming
+    # ------------------------------------------------------------------
+    if cfg.t_start is not None or cfg.t_end is not None:
+        t_trim_start = obspy.UTCDateTime(cfg.t_start) if cfg.t_start else None
+        t_trim_end   = obspy.UTCDateTime(cfg.t_end)   if cfg.t_end   else None
+        st.trim(starttime=t_trim_start, endtime=t_trim_end)
+        if len(st) == 0:
+            logger.error(
+                "No data remaining after trimming to [%s, %s] — aborting.",
+                cfg.t_start, cfg.t_end,
+            )
+            return np.array([]), np.array([]), np.array([])
+        # Refresh reference trace after trim
+        tr0 = st[0]
+        logger.info(
+            "Trimmed to %s — %s  (%d trace(s) remaining)",
+            cfg.t_start or "start", cfg.t_end or "end", len(st),
+        )
+
+    # ------------------------------------------------------------------
     # Apply per-station / per-network config overrides
     # ------------------------------------------------------------------
     net_overrides = NETWORK_OVERRIDES.get(net, {})
@@ -183,6 +203,11 @@ def calc_spec(
     s_out: np.ndarray = np.array([])
     last_mappable = None  # pcolormesh handle for the colorbar
 
+    # Accumulators for the consolidated PSD sidebar (computed once after the loop)
+    s_db_all_high: list[np.ndarray] = []   # high-freq panels
+    s_db_all_low:  list[np.ndarray] = []   # low-freq panels
+    f_sidebar: np.ndarray = np.array([])   # shared frequency axis
+
     # ------------------------------------------------------------------
     # Per-trace loop — preserves genuine data gaps as blank regions
     # ------------------------------------------------------------------
@@ -232,10 +257,8 @@ def calc_spec(
                 cfg.vmin, cfg.vmax, panel="highfreq",
                 show_grid=cfg.show_grid,
             )
-            plot_psd_sidebar(
-                axes["psd_high"], s_db, f, cfg.vmin, cfg.vmax,
-                panel="highfreq", sta=sta, net=net, show_grid=cfg.show_grid,
-            )
+            # Accumulate for consolidated PSD sidebar (plotted after loop)
+            s_db_all_high.append(s_db)
 
             if cfg.pick_harmonics:
                 pick_times, pick_freqs, pick_vals, _ = pick_spectrogram_peaks(
@@ -269,14 +292,9 @@ def calc_spec(
         if cfg.plot_highfreq:
             axes["lowfreq"].spines["top"].set_visible(False)
 
-        # --- Low-frequency PSD sidebar ---
-        plot_psd_sidebar(
-            axes["psd_low"], s_db, f, cfg.vmin, cfg.vmax,
-            panel="lowfreq", sta=sta, net=net, show_grid=cfg.show_grid,
-        )
-
-        if cfg.plot_highfreq:
-            axes["psd_high"].spines["bottom"].set_visible(False)
+        # Accumulate for consolidated PSD sidebar (plotted after loop)
+        s_db_all_low.append(s_db)
+        f_sidebar = f
 
         # --- Event catalog markers ---
         if cfg.cat:
@@ -284,6 +302,29 @@ def calc_spec(
 
         # Save last spectrogram for return value
         f_out, t_out, s_out = f, t, s
+
+    # ------------------------------------------------------------------
+    # Consolidated PSD sidebars — computed once across ALL traces
+    # ------------------------------------------------------------------
+    if s_db_all_low:
+        s_db_combined_low = np.concatenate(s_db_all_low, axis=1)
+        plot_psd_sidebar(
+            axes["psd_low"], s_db_combined_low, f_sidebar,
+            cfg.vmin, cfg.vmax,
+            panel="lowfreq", sta=sta, net=net, show_grid=cfg.show_grid,
+        )
+
+    if cfg.plot_highfreq and s_db_all_high:
+        s_db_combined_high = np.concatenate(s_db_all_high, axis=1)
+        plot_psd_sidebar(
+            axes["psd_high"], s_db_combined_high, f_sidebar,
+            cfg.vmin, cfg.vmax,
+            panel="highfreq", sta=sta, net=net, show_grid=cfg.show_grid,
+        )
+        axes["psd_high"].spines["bottom"].set_visible(False)
+
+    if cfg.plot_highfreq and axes.get("psd_high"):
+        axes["lowfreq"].spines["top"].set_visible(False)
 
     # ------------------------------------------------------------------
     # Finalise: x-axis ticks, colorbar, title, save

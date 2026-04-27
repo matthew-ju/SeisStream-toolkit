@@ -134,6 +134,13 @@ class SpectrogramConfig:
         If set, apply a zero-phase high-pass display filter to the waveform (Hz).
     fmax_plot : float or None
         If set, apply a zero-phase low-pass display filter to the waveform (Hz).
+    t_start : str or None
+        If set, trim the stream to this start time before processing.
+        Accepts any string that :class:`obspy.UTCDateTime` can parse,
+        e.g. ``"2026-01-01T06:00:00"``.
+    t_end : str or None
+        If set, trim the stream to this end time before processing.
+        Accepts any string that :class:`obspy.UTCDateTime` can parse.
     s_threshold : float
         Minimum mean spectrogram power required to attempt harmonic picking (dB).
     nharms : int
@@ -169,6 +176,8 @@ class SpectrogramConfig:
     fmax_pick: float = 1.2
     fmin_plot: Optional[float] = None
     fmax_plot: Optional[float] = None
+    t_start: Optional[str] = None
+    t_end: Optional[str] = None
     s_threshold: float = -140.0
     nharms: int = 4
     sigma_min: float = 1e-3

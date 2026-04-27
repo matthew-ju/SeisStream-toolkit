@@ -32,6 +32,11 @@ except ImportError:
 
 from spectrogram import calc_spec, SpectrogramConfig
 
+_TIME_HELP = (
+    "Any format ObsPy understands, e.g. '2026-01-01T06:00:00' "
+    "or '2026-001' (year + day-of-year).  Defaults to the full file."
+)
+
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -60,6 +65,14 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fmax_plot", type=float, default=None, help="Low-pass display filter (Hz).")
     parser.add_argument("--dpi",     type=int,   default=150,    help="Output image resolution.")
     parser.add_argument("--out_path", default="output",          help="Root output directory.")
+    parser.add_argument(
+        "--start", default=None, metavar="TIME",
+        help="Trim data to start at this time. " + _TIME_HELP,
+    )
+    parser.add_argument(
+        "--end", default=None, metavar="TIME",
+        help="Trim data to end at this time. " + _TIME_HELP,
+    )
 
     return parser
 
@@ -86,6 +99,8 @@ def main() -> None:
         pick_peak      = (args.kind == "peak"),
         fmin_plot      = args.fmin_plot,
         fmax_plot      = args.fmax_plot,
+        t_start        = args.start,
+        t_end          = args.end,
         dpi            = args.dpi,
         path_out       = args.out_path,
     )
