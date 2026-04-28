@@ -54,17 +54,17 @@ def _build_parser() -> argparse.ArgumentParser:
         default="none",
         help="Spectral feature to detect.",
     )
-    parser.add_argument("--fmin",    type=float, default=0.4,   help="Min frequency for picking (Hz).")
-    parser.add_argument("--fmax",    type=float, default=4.0,   help="Max frequency for picking (Hz).")
-    parser.add_argument("--vmin",    type=float, default=-160.0, help="Colour-scale minimum (dB).")
-    parser.add_argument("--vmax",    type=float, default=-60.0,  help="Colour-scale maximum (dB).")
-    parser.add_argument("--winlen",  type=float, default=300.0,  help="Spectrogram window length (s).")
-    parser.add_argument("--nharms",  type=int,   default=4,      help="Number of harmonics for HPS.")
-    parser.add_argument("--skip_hf", action="store_true",        help="Hide the high-frequency panel.")
+    parser.add_argument("--fmin",    type=float, default=None,  help="Min frequency for picking (Hz).")
+    parser.add_argument("--fmax",    type=float, default=None,  help="Max frequency for picking (Hz).")
+    parser.add_argument("--vmin",    type=float, default=None,  help="Colour-scale minimum (dB).")
+    parser.add_argument("--vmax",    type=float, default=None,  help="Colour-scale maximum (dB).")
+    parser.add_argument("--winlen",  type=float, default=None,  help="Spectrogram window length (s).")
+    parser.add_argument("--nharms",  type=int,   default=None,  help="Number of harmonics for HPS.")
+    parser.add_argument("--skip_hf", action="store_true",       help="Hide the high-frequency panel.")
     parser.add_argument("--fmin_plot", type=float, default=None, help="High-pass display filter (Hz).")
     parser.add_argument("--fmax_plot", type=float, default=None, help="Low-pass display filter (Hz).")
-    parser.add_argument("--dpi",     type=int,   default=150,    help="Output image resolution.")
-    parser.add_argument("--out_path", default="output",          help="Root output directory.")
+    parser.add_argument("--dpi",     type=int,   default=None,  help="Output image resolution.")
+    parser.add_argument("--out_path", default=None,             help="Root output directory.")
     parser.add_argument(
         "--start", default=None, metavar="TIME",
         help="Trim data to start at this time. " + _TIME_HELP,
@@ -87,23 +87,24 @@ def main() -> None:
         print(f"Error: no files matched '{args.smgr_path}'", file=sys.stderr)
         sys.exit(1)
 
-    cfg = SpectrogramConfig(
-        fmin_pick      = args.fmin,
-        fmax_pick      = args.fmax,
-        vmin           = args.vmin,
-        vmax           = args.vmax,
-        winlen         = args.winlen,
-        nharms         = args.nharms,
-        plot_highfreq  = not args.skip_hf,
-        pick_harmonics = (args.kind == "harmonic"),
-        pick_peak      = (args.kind == "peak"),
-        fmin_plot      = args.fmin_plot,
-        fmax_plot      = args.fmax_plot,
-        t_start        = args.start,
-        t_end          = args.end,
-        dpi            = args.dpi,
-        path_out       = args.out_path,
-    )
+    cfg = SpectrogramConfig()
+    
+    # Only override values if explicitly provided via CLI
+    if args.fmin is not None: cfg.fmin_pick = args.fmin
+    if args.fmax is not None: cfg.fmax_pick = args.fmax
+    if args.vmin is not None: cfg.vmin = args.vmin
+    if args.vmax is not None: cfg.vmax = args.vmax
+    if args.winlen is not None: cfg.winlen = args.winlen
+    if args.nharms is not None: cfg.nharms = args.nharms
+    if args.skip_hf: cfg.plot_highfreq = False
+    if args.kind == "harmonic": cfg.pick_harmonics = True
+    if args.kind == "peak": cfg.pick_peak = True
+    if args.fmin_plot is not None: cfg.fmin_plot = args.fmin_plot
+    if args.fmax_plot is not None: cfg.fmax_plot = args.fmax_plot
+    if args.start is not None: cfg.t_start = args.start
+    if args.end is not None: cfg.t_end = args.end
+    if args.dpi is not None: cfg.dpi = args.dpi
+    if args.out_path is not None: cfg.path_out = args.out_path
 
     for fnam in tqdm(files, unit="file"):
         try:

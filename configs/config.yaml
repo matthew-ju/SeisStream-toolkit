@@ -1,0 +1,101 @@
+# configs/config.yaml
+# Spectrogram Pipeline Configuration
+
+# ---------------------------------------------------------------------------
+# Default parameters for spectrogram computation and plotting.
+# These replace the hardcoded defaults in the python scripts.
+# ---------------------------------------------------------------------------
+defaults:
+  fmin: 0.01
+  fmax: 10.0
+  vmin: -180.0
+  vmax: -80.0
+  winlen: 300.0
+  plot_highfreq: true
+  pick_harmonics: false
+  pick_peak: false
+  fmin_pick: 0.4
+  fmax_pick: 1.2
+  fmin_plot: null
+  fmax_plot: null
+  t_start: null
+  t_end: null
+  s_threshold: -140.0
+  nharms: 4
+  sigma_min: 0.001
+  p_peak_min: 5.0
+  dpi: 150
+  path_out: "output"
+  fnam_aux: null
+  show_grid: false
+
+# ---------------------------------------------------------------------------
+# Station serial-number → canonical SEED code
+# Maps raw station IDs stored in MiniSEED headers (hardware serial numbers)
+# to human-readable {station, network, location} dicts.
+# ---------------------------------------------------------------------------
+station_aliases:
+  "12166": { station: "MB01", network: "1R", location: "00" }
+  "14020": { station: "MB02", network: "1R", location: "00" }
+  "19453": { station: "MB03", network: "1R", location: "00" }
+  "12446": { station: "MB04", network: "1R", location: "00" }
+  "14086": { station: "BH04", network: "1R", location: "00" }
+  "19351": { station: "BH05", network: "1R", location: "00" }
+  "12668": { station: "BH05", network: "1R", location: "00" }  # active-source exp.
+  "20430": { station: "BH06", network: "1R", location: "00" }
+
+# ---------------------------------------------------------------------------
+# Per-station parameter overrides
+# Keys must match station codes *after* alias resolution.
+# ---------------------------------------------------------------------------
+station_overrides:
+  P100:
+    # Nodal sensor — cap high-frequency corner at 20 Hz
+    f3_hz: 20
+    f4_hz: 21.176470588235293  # 20 * 0.90 / 0.85
+    plot_highfreq: true
+  FARBX:
+    f1_hz: 0.00016666666666666666  # 1.0 / (100 * 60)
+    f2_hz: 0.00018518518518518518  # 1.0 / (90 * 60)
+  MONT:
+    # Tide gauge — no instrument response file available
+    f1_hz: 0.00016666666666666666
+    f2_hz: 0.00018518518518518518
+    remove_response: false
+    plot_highfreq: false
+    psd_label: "PSD [10log(m²/Hz)] (dB)"
+    waveform_label: "Water level\n(m)"
+  "9410":
+    # Strainmeter — no instrument response file available
+    f1_hz: 0.00016666666666666666
+    f2_hz: 0.00018518518518518518
+    remove_response: false
+    plot_highfreq: false
+    psd_label: "PSD [10log(strain-rate²/Hz)] (dB)"
+    waveform_label: "Strain-rate\n(strain/s)"
+
+# ---------------------------------------------------------------------------
+# Network-level overrides (applied before station-level overrides).
+# ---------------------------------------------------------------------------
+network_overrides:
+  BKX:
+    plot_highfreq: false
+  1R:
+    f3_sample_rate_fraction: 0.425
+    f4_sample_rate_fraction: 0.45
+  4E:
+    f3_sample_rate_fraction: 0.425
+    f4_sample_rate_fraction: 0.45
+
+# ---------------------------------------------------------------------------
+# Inventory / StationXML paths
+# Map station or network codes to local StationXML files.
+# {net} and {sta} are template variables expanded at runtime.
+# Set a value to null to disable response removal for that entry.
+# ---------------------------------------------------------------------------
+inventory_paths:
+  # Station-specific overrides
+  P100: null   # set to "/path/to/station_BVtest.xml"
+  PORGT: null  # set to "/path/to/station_BVtest.xml"
+  # Generic per-network template (used as fallback)
+  BB_template: "/home/bsl/taira/dc6_doc/{net}.info/{net}.FDSN.xml/{net}.{sta}.xml"
