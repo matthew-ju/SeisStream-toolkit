@@ -180,8 +180,10 @@ def plot_spectrogram_panel(
     vmax: float,
     panel: str,
     fmin: float = 1e-2,
+    sta: str = "",
+    net: str = "",
     show_grid: bool = False,
-) -> None:
+) -> plt.cm.ScalarMappable:
     """
     Render a single spectrogram panel using ``pcolormesh``.
 
@@ -206,18 +208,19 @@ def plot_spectrogram_panel(
         Draw grid lines.
     """
     if panel == "highfreq":
-        ax.pcolormesh(t_dates, f, s_db, vmin=vmin, vmax=vmax, cmap="plasma", shading="auto")
+        im = ax.pcolormesh(t_dates, f, s_db, vmin=vmin, vmax=vmax, cmap="plasma", shading="auto")
         ax.set_ylim(1, f[-1])
         ax.set_ylabel("Frequency (Hz)")
         ax.spines["bottom"].set_visible(False)
         plt.setp(ax.get_xticklabels(), visible=False)
     elif panel == "lowfreq":
-        ax.pcolormesh(
+        im = ax.pcolormesh(
             t_dates, np.log10(1.0 / f), s_db,
             vmin=vmin, vmax=vmax, cmap="plasma", shading="auto",
         )
         ax.set_ylim(np.log10(1.0 / fmin), 0)
         ax.set_ylabel("Period (s)")
+        apply_period_yticks(ax, sta, net)
     else:
         raise ValueError(f"panel must be 'highfreq' or 'lowfreq', got '{panel}'")
 
@@ -225,6 +228,8 @@ def plot_spectrogram_panel(
         ax.grid(axis="y", which="major", linewidth=1)
         ax.grid(axis="y", which="minor")
         ax.grid(axis="x")
+
+    return im
 
 
 def apply_period_yticks(ax: plt.Axes, sta: str, net: str) -> None:
@@ -315,12 +320,14 @@ def plot_psd_sidebar(
         if net in ("1R", "4E"):
             ax.set_ylim(1, 50)
         ax.spines["bottom"].set_visible(False)
+        ax.set_ylabel("Frequency (Hz)")
         ax.set_xticklabels([])
     elif panel == "lowfreq":
         log_period = np.log10(1.0 / f)
         ax.plot(mean_psd, log_period, color="black")
         ax.plot(p05_psd,  log_period, color="darkgrey", linestyle="--")
         ax.plot(p95_psd,  log_period, color="darkgrey", linestyle="--")
+        ax.set_ylabel("Period (s)")
         apply_period_yticks(ax, sta, net)
     else:
         raise ValueError(f"panel must be 'highfreq' or 'lowfreq', got '{panel}'")
@@ -357,7 +364,7 @@ def format_time_axes(
     plot_highfreq : bool
         Whether the high-frequency panel exists.
     """
-    locator   = mdates.AutoDateLocator(maxticks=20)
+    locator   = mdates.AutoDateLocator(maxticks=20, interval_multiples=False)
     formatter = mdates.DateFormatter("%H:%M")
 
     ax_wave = axes["waveform"]
@@ -365,11 +372,12 @@ def format_time_axes(
     ax_wave.xaxis.set_major_formatter(formatter)
 
     t0_mdate = mdates.date2num(t0_global.datetime)
-    t1_mdate = mdates.date2num(t1_global.datetime)
+    # Add a 1 second margin to ensure the final tick mark is not clipped
+    t1_mdate = mdates.date2num((t1_global + 1.0).datetime)
     axes["lowfreq"].set_xlim(t0_mdate, t1_mdate)
 
     ax_lf = axes["lowfreq"]
-    ax_lf.xaxis.set_major_locator(mdates.AutoDateLocator(maxticks=20))
+    ax_lf.xaxis.set_major_locator(mdates.AutoDateLocator(maxticks=20, interval_multiples=False))
     ax_lf.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
     ax_lf.set_xlabel(
         "Hours (UTC) starting {}".format(t0_global.strftime("%Y-%m-%d"))

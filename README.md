@@ -44,6 +44,16 @@ Run the harmonic picker on a specific frequency band:
 python src/run_spectrogram.py doc/testdata.mseed --kind harmonic --fmin 0.4 --fmax 1.2
 ```
 
+### 4. Configuration & Time Trimming
+The pipeline uses a centralized YAML file (`configs/config.yaml`) for base defaults, station-specific overrides, and alias definitions. You can also override parameters at runtime and slice data to a specific time window:
+
+```bash
+python src/run_spectrogram.py doc/testdata.mseed \
+    --start "2026-01-01T02:00:00" \
+    --end "2026-01-01T10:00:00" \
+    --vmin -150 --vmax -50
+```
+
 ---
 
 ## Project Architecture
@@ -52,13 +62,15 @@ The codebase follows a modular design pattern to separate concerns and improve m
 
 ```text
 SeisStream-toolkit/
+├── configs/                   # Centralized YAML configuration
+│   └── config.yaml            # Base parameters and overrides
 ├── src/
 │   ├── spectrogram/           # Core Package
 │   │   ├── core.py            # Main orchestration logic
 │   │   ├── preprocessing.py   # Instrument response & filtering
 │   │   ├── analysis.py        # HPS picking & signal math
 │   │   ├── plotting.py        # Matplotlib rendering engine
-│   │   ├── config.py          # Static metadata & station aliases
+│   │   ├── config.py          # Dynamic config loader & dataclasses
 │   │   └── io.py              # File handles & pick writing
 │   ├── run_spectrogram.py     # CLI: Single-file/Glob processor
 │   └── run_batch.py           # CLI: High-volume batch processor
